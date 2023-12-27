@@ -1,0 +1,8 @@
+
+
+
+					*Cosas por hacer*
+
+
+[] Podes subir imagenes al web api. Investigar opciones
+[] Post de Blogdetail
