@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using wep_api_token.ContextModel;
+using wep_api_token.Filtros;
 using wep_api_token.repository;
 using wep_api_token.services;
 
@@ -16,7 +17,6 @@ var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -48,10 +48,16 @@ builder.Services.AddSwaggerGen(option => {
 });
 builder.Services.AddTransient<UserRepository, UserRepository>();
 builder.Services.AddTransient<UserServices,UserServices>();
+//Fiiltros
+builder.Services.AddTransient<FiltrosRecursos>();
+builder.Services.AddTransient<FilterConsole>();
+builder.Services.AddTransient<FiltroResultado>();
+
 builder.Services.AddDbContext<UsuariosContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("postgres"));
 });
+
 builder.Services.AddAuthentication(opcion =>
 {
     opcion.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -80,9 +86,11 @@ builder.Services.AddCors(options =>
             policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost").AllowAnyHeader().AllowAnyMethod();
         });
 });
-
 builder.Services.AddAuthorization();
 var app = builder.Build();
+
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -91,6 +99,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+if (app.Environment.IsProduction()){
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseCors(MyAllowSpecificOrigins);
@@ -102,7 +114,10 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseAuthorization();
-
 app.MapControllers();
 
+//Esta linea de codigo muestra el valor de la variable de entorno 
+app.MapGet("/", () => Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")); 
+
 app.Run();
+
